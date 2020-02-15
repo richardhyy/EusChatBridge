@@ -1,0 +1,8 @@
+name: EusChatBridge
+version: ${project.version}
+main: cc.eumc.euschatbridge.EusChatBridge
+api-version: 1.13
+softdepend: [UniBan]
+authors: [EucalyptusLeaves]
+description: A UniBan Extension that builds a bridge between webhooks of IM service and your Minecraft server
+website: www.eumc.cc

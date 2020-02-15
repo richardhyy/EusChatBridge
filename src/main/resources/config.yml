@@ -1,0 +1,14 @@
+Settings:
+  Receiving:
+    Enabled: true
+    Path: '/ChatBridge'
+    ConnectionPassword: 'UniBanSecret'
+    MinRequestInterval: 0.02
+    # '&' will be replaced by '§'
+    MessageTemplate: '[{name}] {message}'
+  Sending:
+    Enabled: true
+    ConnectionPassword: 'UniBanSecret'
+    # POST params: password & playername & message
+    Webhooks:
+      - 'https://example.com/EusChatBridge/webhook.php'
