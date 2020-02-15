@@ -2,22 +2,17 @@ package cc.eumc.euschatbridge.handler;
 
 import cc.eumc.euschatbridge.EusChatBridge;
 import cc.eumc.euschatbridge.PluginConfig;
-import org.apache.http.Consts;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerChatEvent;
 
+import javax.net.ssl.HttpsURLConnection;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 public class MessageEventHandler implements Listener {
     EusChatBridge plugin;
@@ -27,28 +22,64 @@ public class MessageEventHandler implements Listener {
     }
 
     @EventHandler
-    public void onPlayerMessage(AsyncPlayerChatEvent e) {
+    public void onPlayerMessage(PlayerChatEvent e) {
         if (!PluginConfig.Sending_Enabled) return;
         if (PluginConfig.Sending_Webhooks.size() == 0) return;
-        Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             for (String webhookURL : PluginConfig.Sending_Webhooks) {
                 sendMessageToWebhook(webhookURL, e.getPlayer().getName(), e.getMessage());
             }
-        }, 1);
+        });
     }
 
     void sendMessageToWebhook(String webhookURL, String playerName, String message) {
         try {
-            List<NameValuePair> params = new ArrayList<>();
-            params.add(new BasicNameValuePair("password", PluginConfig.Sending_ConnectionPassword));
-            params.add(new BasicNameValuePair("playername", playerName));
-            params.add(new BasicNameValuePair("message", message));
+            String params = "";
+            params = "password=" + URLEncoder.encode(PluginConfig.Sending_ConnectionPassword, StandardCharsets.UTF_8.toString());
+            params += "&playername=" + URLEncoder.encode(playerName, StandardCharsets.UTF_8.toString());
+            params += "&message=" + URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
             httpPost(webhookURL, params);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    static String httpPost(String url, String urlParameters) throws Exception {
+        try {
+            URL obj = new URL(url);
+            HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+
+            //add reuqest header
+            con.setRequestMethod("POST");
+
+            // Send post request
+            con.setDoOutput(true);
+            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+            wr.writeBytes(urlParameters);
+            wr.flush();
+            wr.close();
+
+            int responseCode = con.getResponseCode();
+
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            //print result
+            return response.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /*
     static String httpPost(String url, List<NameValuePair> params) throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(url);
@@ -59,5 +90,5 @@ public class MessageEventHandler implements Listener {
         client.close();
 
         return response.toString();
-    }
+    }*/
 }
