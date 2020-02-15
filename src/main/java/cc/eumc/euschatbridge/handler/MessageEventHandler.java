@@ -30,16 +30,11 @@ public class MessageEventHandler implements Listener {
     public void onPlayerMessage(AsyncPlayerChatEvent e) {
         if (!PluginConfig.Sending_Enabled) return;
         if (PluginConfig.Sending_Webhooks.size() == 0) return;
-        Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
-            @Override
-            public void run() {
-                for (String webhookURL : PluginConfig.Sending_Webhooks) {
-                    sendMessageToWebhook(webhookURL, e.getPlayer().getName(), e.getMessage());
-                }
+        Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+            for (String webhookURL : PluginConfig.Sending_Webhooks) {
+                sendMessageToWebhook(webhookURL, e.getPlayer().getName(), e.getMessage());
             }
         }, 1);
-
-
     }
 
     void sendMessageToWebhook(String webhookURL, String playerName, String message) {
