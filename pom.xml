@@ -6,7 +6,7 @@
 
     <groupId>cc.eumc</groupId>
     <artifactId>EusChatBridge</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>EusChatBridge</name>
