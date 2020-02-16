@@ -12,10 +12,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ChatReceiveHandler implements HttpHandler {
@@ -39,12 +36,11 @@ public class ChatReceiveHandler implements HttpHandler {
 
         Map<String, String> args = new HashMap<>();
         if (t.getRequestMethod().equals("POST")) {
-            List<String> postData = new ArrayList<>();
+            String postData;
             postData = new BufferedReader(new InputStreamReader(t.getRequestBody()))
-                    .lines().collect(Collectors.toList());
+                    .lines().collect(Collectors.joining("\n"));
             args = parseParams(postData);
         }
-
 
         String response = "";
         if (args.containsKey("password") && args.containsKey("name") && args.containsKey("message")) {
@@ -71,13 +67,18 @@ public class ChatReceiveHandler implements HttpHandler {
     }
 
 
-    private static Map<String, String> parseParams(List<String> postData) {
+    private Map<String, String> parseParams(String postDataStr) {
+        List<String> postData = Arrays.asList(postDataStr.split("\n"));
         if (postData.size() > 0) {
             Map<String, String> argMap= new HashMap<>();
             for (String str : postData) {
-                String[] split = str.split("=", 2);
-                if (split.length == 2)
-                    argMap.put(split[0], split[1]);
+                //plugin.getLogger().info(" @ " + str);
+                String[] split = str.split("&");
+                for (String nvStr : split) {
+                    String[] splitNV = nvStr.split("=", 2);
+                    if (splitNV.length == 2)
+                        argMap.put(splitNV[0], splitNV[1]);
+                }
             }
             return argMap;
         }
